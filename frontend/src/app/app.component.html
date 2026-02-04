@@ -1,0 +1,105 @@
+<div class="container">
+  <!-- Header -->
+  <header class="header">
+    <h1>Video Call App</h1>
+    <p class="subtitle">Simple WebRTC Video Calling</p>
+  </header>
+
+  <!-- Join Section - Shown when not joined -->
+  <section class="join-section" *ngIf="!isJoined">
+    <div class="join-card">
+      <h2>Join a Call</h2>
+      <p class="hint">Enter the join code to connect</p>
+
+      <!-- Join Code Input -->
+      <div class="input-group">
+        <input
+          type="text"
+          [(ngModel)]="joinCode"
+          placeholder="Enter code (e.g., CALL123)"
+          class="code-input"
+          (keyup.enter)="joinCall()"
+          maxlength="10"
+        />
+        <button class="btn btn-primary" (click)="joinCall()">
+          Join
+        </button>
+      </div>
+
+      <!-- Error Message -->
+      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+      <!-- Status Message -->
+      <p class="status">{{ statusMessage }}</p>
+    </div>
+  </section>
+
+  <!-- Call Section - Shown when joined -->
+  <section class="call-section" *ngIf="isJoined">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-indicator" [class.connected]="remoteUserConnected"></span>
+      <span>{{ statusMessage }}</span>
+    </div>
+
+    <!-- Video Container -->
+    <div class="video-container">
+      <!-- Remote Video (Large) -->
+      <div class="remote-video-wrapper">
+        <video
+          #remoteVideo
+          class="remote-video"
+          autoplay
+          playsinline
+        ></video>
+        <div class="video-label" *ngIf="!isCallStarted">
+          Remote Video
+        </div>
+        <div class="waiting-overlay" *ngIf="isWaiting">
+          <div class="spinner"></div>
+          <p>Waiting for another user...</p>
+        </div>
+      </div>
+
+      <!-- Local Video (Small, Picture-in-Picture style) -->
+      <div class="local-video-wrapper">
+        <video
+          #localVideo
+          class="local-video"
+          autoplay
+          playsinline
+          muted
+        ></video>
+        <div class="video-label">You</div>
+      </div>
+    </div>
+
+    <!-- Control Buttons -->
+    <div class="controls">
+      <!-- Start Call Button -->
+      <button
+        class="btn btn-success"
+        (click)="startCall()"
+        *ngIf="!isCallStarted && remoteUserConnected"
+      >
+        Start Call
+      </button>
+
+      <!-- End Call Button -->
+      <button
+        class="btn btn-danger"
+        (click)="endCall()"
+      >
+        End Call
+      </button>
+    </div>
+
+    <!-- Error Message -->
+    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>Join Code: <strong>CALL123</strong></p>
+  </footer>
+</div>
