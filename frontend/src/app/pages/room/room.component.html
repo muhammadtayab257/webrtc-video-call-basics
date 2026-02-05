@@ -1,0 +1,165 @@
+<div class="room-container">
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading room...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+      <button class="btn btn-primary" (click)="leaveRoom()">Back to Dashboard</button>
+    </div>
+  } @else {
+    <!-- Room Header -->
+    <header class="room-header">
+      <div class="room-info">
+        <h1>{{ room()?.name }}</h1>
+        <span class="room-code" (click)="copyRoomCode()" title="Click to copy">
+          {{ room()?.code }}
+        </span>
+      </div>
+      <div class="room-actions">
+        <span class="participant-count">
+          {{ roomService.participants().length }} in room
+        </span>
+        <button class="btn btn-outline" (click)="leaveRoom()">Leave</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="room-main" [class.chat-open]="showChat()">
+      <!-- Video Section -->
+      <section class="video-section">
+        <!-- Video Grid -->
+        <div class="video-grid" [class.single]="!webrtcService.isInCall() || getRemoteStreams().length === 0"
+             [class.two]="getRemoteStreams().length === 1"
+             [class.three]="getRemoteStreams().length === 2"
+             [class.four]="getRemoteStreams().length >= 3">
+
+          @if (webrtcService.isInCall()) {
+            <!-- Local Video -->
+            <div class="video-tile local">
+              <video #localVideo autoplay playsinline muted></video>
+              <span class="video-label">You</span>
+              @if (webrtcService.isMuted()) {
+                <span class="muted-badge">Muted</span>
+              }
+            </div>
+
+            <!-- Remote Videos -->
+            @for (remote of getRemoteStreams(); track remote.socketId) {
+              <div class="video-tile">
+                <video [srcObject]="remote.stream" autoplay playsinline></video>
+                <span class="video-label">Participant</span>
+              </div>
+            }
+          } @else {
+            <!-- No Call State -->
+            <div class="no-call-state">
+              <div class="icon">📹</div>
+              <h3>No active call</h3>
+              <p>Click "Start Call" to begin a video call</p>
+            </div>
+          }
+        </div>
+
+        <!-- Call Controls -->
+        <div class="call-controls">
+          @if (!webrtcService.isInCall()) {
+            <button class="control-btn start" (click)="startCall()">
+              <span>📹</span> Start Call
+            </button>
+          } @else {
+            <button class="control-btn" [class.active]="webrtcService.isMuted()" (click)="toggleMute()">
+              @if (webrtcService.isMuted()) {
+                <span>🔇</span>
+              } @else {
+                <span>🎤</span>
+              }
+            </button>
+            <button class="control-btn" [class.active]="webrtcService.isVideoOff()" (click)="toggleVideo()">
+              @if (webrtcService.isVideoOff()) {
+                <span>📷</span>
+              } @else {
+                <span>🎥</span>
+              }
+            </button>
+            <button class="control-btn end" (click)="endCall()">
+              <span>📞</span>
+            </button>
+          }
+          <button class="control-btn" [class.active]="showChat()" (click)="toggleChat()">
+            <span>💬</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Chat Section -->
+      @if (showChat()) {
+        <aside class="chat-section">
+          <div class="chat-header">
+            <h3>Chat</h3>
+            <button class="close-chat" (click)="toggleChat()">&times;</button>
+          </div>
+
+          <div class="chat-messages" #chatMessages>
+            @for (message of chatService.messages(); track message.id) {
+              <div class="message" [class.system]="message.message_type === 'system'"
+                   [class.own]="message.user_id === authService.currentUser()?.id">
+                @if (message.message_type === 'system') {
+                  <span class="system-text">{{ message.content }}</span>
+                } @else {
+                  <div class="message-header">
+                    <span class="username">{{ message.username }}</span>
+                    <span class="time">{{ message.created_at | date:'shortTime' }}</span>
+                  </div>
+                  <p class="message-text">{{ message.content }}</p>
+                }
+              </div>
+            }
+
+            @if (chatService.messages().length === 0) {
+              <div class="no-messages">
+                <p>No messages yet. Say hi!</p>
+              </div>
+            }
+          </div>
+
+          <!-- Typing Indicator -->
+          @if (chatService.typingUsers().length > 0) {
+            <div class="typing-indicator">
+              {{ chatService.typingUsers()[0].username }} is typing...
+            </div>
+          }
+
+          <div class="chat-input">
+            <input
+              type="text"
+              [(ngModel)]="messageText"
+              placeholder="Type a message..."
+              (keyup.enter)="sendMessage()"
+            />
+            <button class="send-btn" (click)="sendMessage()">Send</button>
+          </div>
+        </aside>
+      }
+    </main>
+
+    <!-- Participants Sidebar (for larger screens) -->
+    <aside class="participants-sidebar">
+      <h3>Participants</h3>
+      <ul>
+        @for (participant of roomService.participants(); track participant.id) {
+          <li [class.online]="participant.is_online">
+            <span class="avatar">{{ participant.username.charAt(0).toUpperCase() }}</span>
+            <span class="name">{{ participant.username }}</span>
+            @if (participant.id === authService.currentUser()?.id) {
+              <span class="you">(You)</span>
+            }
+          </li>
+        }
+      </ul>
+    </aside>
+  }
+</div>

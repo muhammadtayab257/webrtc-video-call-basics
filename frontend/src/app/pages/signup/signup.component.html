@@ -1,0 +1,74 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>Create Account</h1>
+      <p>Join Video Call App</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="auth-form">
+      @if (error()) {
+        <div class="error-message">{{ error() }}</div>
+      }
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          [(ngModel)]="username"
+          name="username"
+          placeholder="Choose a username"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="Enter your email"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="Create a password (min 6 chars)"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          [(ngModel)]="confirmPassword"
+          name="confirmPassword"
+          placeholder="Confirm your password"
+          required
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary" [disabled]="loading()">
+        @if (loading()) {
+          <span class="spinner"></span> Creating account...
+        } @else {
+          Sign Up
+        }
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Already have an account? <a routerLink="/login">Sign in</a></p>
+    </div>
+  </div>
+</div>

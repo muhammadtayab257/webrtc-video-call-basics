@@ -1,0 +1,109 @@
+<div class="dashboard">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <h1>Video Call App</h1>
+    </div>
+    <div class="header-right">
+      <span class="username">{{ authService.currentUser()?.username }}</span>
+      <button class="btn btn-outline" (click)="logout()">Logout</button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Error Message -->
+    @if (error()) {
+      <div class="error-message">{{ error() }}</div>
+    }
+
+    <!-- Actions -->
+    <div class="actions-section">
+      <div class="action-card">
+        <h3>Create New Room</h3>
+        <p>Start a new video call room</p>
+        <button class="btn btn-primary" (click)="openCreateModal()">Create Room</button>
+      </div>
+
+      <div class="action-card">
+        <h3>Join Room</h3>
+        <p>Enter a room code to join</p>
+        <div class="join-form">
+          <input
+            type="text"
+            [(ngModel)]="joinCode"
+            placeholder="Enter room code"
+            (keyup.enter)="joinRoom()"
+            maxlength="10"
+          />
+          <button class="btn btn-secondary" (click)="joinRoom()" [disabled]="loading()">
+            Join
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rooms List -->
+    <section class="rooms-section">
+      <h2>Your Rooms</h2>
+
+      @if (roomService.rooms().length === 0) {
+        <div class="empty-state">
+          <p>No rooms yet. Create or join a room to get started!</p>
+        </div>
+      } @else {
+        <div class="rooms-grid">
+          @for (room of roomService.rooms(); track room.id) {
+            <div class="room-card" (click)="enterRoom(room)">
+              <div class="room-info">
+                <h3>{{ room.name }}</h3>
+                <span class="room-code">{{ room.code }}</span>
+              </div>
+              <div class="room-meta">
+                <span class="participants">
+                  {{ room.participant_count || 0 }} participants
+                </span>
+                @if (room.created_by === authService.currentUser()?.id) {
+                  <button class="btn-delete" (click)="deleteRoom(room, $event)" title="Delete room">
+                    &times;
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </main>
+
+  <!-- Create Room Modal -->
+  @if (showCreateModal()) {
+    <div class="modal-overlay" (click)="closeCreateModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Create New Room</h2>
+
+        <div class="form-group">
+          <label for="roomName">Room Name</label>
+          <input
+            type="text"
+            id="roomName"
+            [(ngModel)]="newRoomName"
+            placeholder="Enter room name"
+            (keyup.enter)="createRoom()"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-outline" (click)="closeCreateModal()">Cancel</button>
+          <button class="btn btn-primary" (click)="createRoom()" [disabled]="loading()">
+            @if (loading()) {
+              Creating...
+            } @else {
+              Create
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
